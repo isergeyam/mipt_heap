@@ -1,16 +1,7 @@
 #include "IHeap.hpp"
 #include <list>
 #include <vector>
-#include <ext/pb_ds/assoc_container.hpp>
-#include <ext/pb_ds/tree_policy.hpp>
-
-template< typename T> 
-using ordered_set = __gnu_pbds::tree<
-  T,
-  __gnu_pbds::null_type,
-  std::less<T>,
-  __gnu_pbds::rb_tree_tag,
-  __gnu_pbds::tree_order_statistics_node_update> ;
+#include <algorithm>
 class CBinomialTree{
 	private:
 		int key ;
@@ -51,11 +42,14 @@ class CBinomialHeapNode {
 		CBinomialHeapNode(_Tree head) {
 			root.push_back(head) ;
 		}
+		size_t size() {
+			return root.size() ;
+		}
 		CBinomialHeapNode() {}
 		static _Self* merge(_Self *mleft, _Self *mright) {
-			if (mleft==nullptr) 
+			if (mleft==nullptr || mleft->size() == 0) 
 				return mright ;
-			if (mright==nullptr)
+			if (mright==nullptr || mright->size() == 0)
 				return mleft ;
 			_Self *res = new _Self ;
 			for (auto it1=mleft->root.begin(), it2=mright->root.begin(), cur=res->root.begin();it1!=mleft->root.end() || it2!=mright->root.end();++cur) {
@@ -136,6 +130,8 @@ class CBinomialHeapNode {
 			return res ;
 		}
 		int ExtractMin() {
+			if(size()==0) 
+				return 0 ;
 			auto min_it=minimum() ;
 			int res=min_it->key ;
 			_Self *newnode = new _Self ;
@@ -153,7 +149,7 @@ class CBinomialHeapNode {
 class CBinomialHeap : public IHeap {
 	typedef CBinomialHeapNode Heap ;
 	private:
-		std::vector<CBinomialHeapNode*> vec ;
+		std::vector<Heap*> vec ;
 	public:
 		CBinomialHeap() {}
 		virtual void AddHeap( int x) {
@@ -169,6 +165,8 @@ class CBinomialHeap : public IHeap {
 			return vec[index]->ExtractMin() ;
 		}
 		virtual void Meld(size_t index1, size_t index2) {
+			if (vec.size()<2 || index1==index2)
+				return ;
 			vec[index1]=Heap::merge(vec[index1], vec[index2]) ;
 			vec.erase(vec.begin()+index2) ;
 		}
