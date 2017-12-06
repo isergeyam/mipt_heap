@@ -4,7 +4,6 @@
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
 
-
 template< typename T> 
 using ordered_set = __gnu_pbds::tree<
   T,
@@ -25,7 +24,13 @@ class CBinomialTree{
 			child(child),
 			next(next),
 			degree(degree) {}
-		friend class CBinomialHeap ;
+		~CBinomialTree() {
+			if (child!=nullptr)
+				delete child ;
+			if (next!=nullptr)
+				delete next ;
+		}
+		friend class CBinomialHeapNode ;
 		static _Self* merge(_Self *left, _Self *right) {
 			if (left==nullptr)
 				return right ;
@@ -42,60 +47,128 @@ class CBinomialTree{
 		}
 };
 class CBinomialHeapNode {
+	typedef CBinomialHeapNode _Self ;
+	typedef CBinomialTree _Tree ;
+	typedef std::list<_Tree> _List ;
 	private:
-		CBinomialTree *head ;
+		_List root ;
 	public:
-		typedef CBinomialHeapNode _Self ;
-		CBinomialHeapNode(CBinomialTree *head = nullptr) :
-			head(head) {}
+		CBinomialHeapNode(_Tree head) {
+			root.push_back(head) ;
+		}
+		CBinomialHeapNode() {}
 		static _Self* merge(_Self *mleft, _Self *mright) {
-			CBinomialTree *left=mleft->head, *right=mright->head ;
+			if (mleft==nullptr) 
+				return mright ;
+			if (mright==nullptr)
+				return mleft ;
 			_Self *res = new _Self ;
-			if (left==nullptr) 
-				res->head=right ;
+			for (auto it1=mleft->root.begin(), it2=mright->root.begin(), cur=res->root.begin();it1!=mleft->root.end() || it2!=mright->root.end();++cur) {
+					if (it2==mright->root.end() || it1->degree<it2->degree) {
+						res->root.push_back(*it1) ;
+						++it1 ;
+					}
+					else if (it1==mleft->root.end() || it2->degree < it1->degree) {
+						res->root.push_back(*it2) ;
+						++it2 ;
+					}
+					else {
+						res->root.push_back(*_Tree::merge(&(*it1), &(*it2))) ;
+						++it1 ;
+						++it2 ;
+					}
+					_List::iterator ncur=std::next(cur) ;
+					if (cur->degree==ncur->degree) {
+						res->root.push_back(*_Tree::merge(&(*cur), &(*ncur))) ;
+						res->root.erase(cur) ;
+						res->root.erase(ncur) ;
+					}
+			}
+			/*if (left==nullptr) 
+				res->root.insert(res->root.begin(), mright->root.begin(), mright->root.end()) ;
 			else if (right==nullptr) 
-				res->head=left ;
+				res->root.insert(res->root.begin(), mleft->root.begin(), mleft->root.end()) ;
 			else {
-				CBinomialTree *&cur=res->head ;
-				while (left!=nullptr && right!=nullptr) {
-					
+				_List::iterator cur=res->root.begin(), pcur ;
+				while (left!=nullptr || right!=nullptr) {
+					if (right==nullptr || left->degree<right->degree) {
+						cur->next=left ;
+						left=left->next ;
+					}
+					else if (left==nullptr || right->degree<left->degree) {
+						cur->next=right ;
+						right=right->next ;
+					}
+					else { 
+						_Tree *nleft=left->next, *nright=right->next ;
+						cur->next=_Tree::merge(left, right) ;
+						left=nleft ;
+						right=nright ;
+					}
+					if (cur->degree == cur->next->degree) {
+						cur = _Tree::merge(cur, cur->next) ;
+						pcur->next=cur ;
+					}
+					else {
+						pcur=cur ;
+						cur=cur->next ;
+					}
+				}
+			}*/
+			return res ;
+		}
+		void insert(int x) {
+			_Self *ntr = new _Self(_Tree(x)) ;
+			merge(this, ntr) ;
+			return ;
+		}
+		_List::iterator minimum() {
+			int curmin = std::numeric_limits<int>::max() ;
+			_List::iterator res ;
+			for (auto it=root.begin();it!=root.end();++it) {
+				if (it->key<curmin) {
+					curmin=it->key ;
+					res=it ;
 				}
 			}
 			return res ;
 		}
 };
+class CBinomialHeap : public IHeap {
+
+};
 /*class BinomialHeapNode {
 	typedef BinomialHeapNode _Self ;
 	private:
-		int key ;
-		_Self *parent ;
-		_Self *child ;
-		_Self *sibling ;
-		size_t degree ;
+	int key ;
+	_Self *parent ;
+	_Self *child ;
+	_Self *sibling ;
+	size_t degree ;
 	public:
-		friend class BinomialHeap ;
-		static _Self* merge(_Self *first, _Self *second) {
-			if (first==NULL) 
-				return second ;
-			if (second==NULL)
-				return first ;
-			_Self *res ;
-			if (first->key>second->key)
-				std::swap(first, second) ;
-			res->key=first->key ;
-			first->parent=res ;
-			res->child=:
-		}
-};
-class BinomialHeap : public IHeap {
+	friend class BinomialHeap ;
+	static _Self* merge(_Self *first, _Self *second) {
+	if (first==NULL) 
+	return second ;
+	if (second==NULL)
+	return first ;
+	_Self *res ;
+	if (first->key>second->key)
+	std::swap(first, second) ;
+	res->key=first->key ;
+	first->parent=res ;
+	res->child=:
+	}
+	};
+	class BinomialHeap : public IHeap {
 	typedef BinomialHeap _Self ;
 	private:
-		std::list<BinomialHeapNode*> heaps ;
+	std::list<BinomialHeapNode*> heaps ;
 	public:
-		static _Self* Merge(_Self *first, _Self *second) {
-			if (first==NULL) 
-				return second ;
-			if (second==NULL)
-				return first ;
-		}
-};*/
+	static _Self* Merge(_Self *first, _Self *second) {
+	if (first==NULL) 
+	return second ;
+	if (second==NULL)
+	return first ;
+	}
+	};*/
