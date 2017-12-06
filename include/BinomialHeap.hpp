@@ -24,13 +24,8 @@ class CBinomialTree{
 			child(child),
 			next(next),
 			degree(degree) {}
-		~CBinomialTree() {
-			if (child!=nullptr)
-				delete child ;
-			if (next!=nullptr)
-				delete next ;
-		}
 		friend class CBinomialHeapNode ;
+		friend class CBinomialHeap ;
 		static _Self* merge(_Self *left, _Self *right) {
 			if (left==nullptr)
 				return right ;
@@ -78,6 +73,8 @@ class CBinomialHeapNode {
 						++it2 ;
 					}
 					_List::iterator ncur=std::next(cur) ;
+					if(ncur==res->root.begin())
+						continue ;
 					if (cur->degree==ncur->degree) {
 						res->root.push_back(*_Tree::merge(&(*cur), &(*ncur))) ;
 						res->root.erase(cur) ;
@@ -117,58 +114,62 @@ class CBinomialHeapNode {
 			}*/
 			return res ;
 		}
+		CBinomialHeapNode(_Self &&that) {
+			root=std::move(that.root) ;
+		}
+		CBinomialHeapNode& operator=(CBinomialHeapNode that) {
+			std::swap(root, that.root) ;
+			return *this ;
+		}
 		void insert(int x) {
 			_Self *ntr = new _Self(_Tree(x)) ;
-			merge(this, ntr) ;
+			root=std::move(merge(this, ntr)->root) ;
 			return ;
 		}
 		_List::iterator minimum() {
-			int curmin = std::numeric_limits<int>::max() ;
-			_List::iterator res ;
+			_List::iterator res=root.begin() ;
 			for (auto it=root.begin();it!=root.end();++it) {
-				if (it->key<curmin) {
-					curmin=it->key ;
+				if (it->key<res->key) {
 					res=it ;
 				}
 			}
 			return res ;
 		}
+		int ExtractMin() {
+			auto min_it=minimum() ;
+			int res=min_it->key ;
+			_Self *newnode = new _Self ;
+			_Tree *start=min_it->child ;
+			while(start!=nullptr) {
+				newnode->root.push_back(*start) ;
+				start=start->next ;
+			}
+			std::reverse(newnode->root.begin(), newnode->root.end()) ;
+			root.erase(min_it) ;
+			root=std::move(merge(this, newnode)->root) ;
+			return res ; 
+		}
 };
 class CBinomialHeap : public IHeap {
-
+	typedef CBinomialHeapNode Heap ;
+	private:
+		std::vector<CBinomialHeapNode*> vec ;
+	public:
+		CBinomialHeap() {}
+		virtual void AddHeap( int x) {
+			vec.push_back(new Heap(x)) ;	
+		}
+		virtual void Insert( size_t index, int x) {
+			vec[index]->insert(x) ;
+		}
+		virtual int GetMin(size_t index) const {
+			return vec[index]->minimum()->key ;
+		}
+		virtual int ExtractMin(size_t index)  {
+			return vec[index]->ExtractMin() ;
+		}
+		virtual void Meld(size_t index1, size_t index2) {
+			vec[index1]=Heap::merge(vec[index1], vec[index2]) ;
+			vec.erase(vec.begin()+index2) ;
+		}
 };
-/*class BinomialHeapNode {
-	typedef BinomialHeapNode _Self ;
-	private:
-	int key ;
-	_Self *parent ;
-	_Self *child ;
-	_Self *sibling ;
-	size_t degree ;
-	public:
-	friend class BinomialHeap ;
-	static _Self* merge(_Self *first, _Self *second) {
-	if (first==NULL) 
-	return second ;
-	if (second==NULL)
-	return first ;
-	_Self *res ;
-	if (first->key>second->key)
-	std::swap(first, second) ;
-	res->key=first->key ;
-	first->parent=res ;
-	res->child=:
-	}
-	};
-	class BinomialHeap : public IHeap {
-	typedef BinomialHeap _Self ;
-	private:
-	std::list<BinomialHeapNode*> heaps ;
-	public:
-	static _Self* Merge(_Self *first, _Self *second) {
-	if (first==NULL) 
-	return second ;
-	if (second==NULL)
-	return first ;
-	}
-	};*/
