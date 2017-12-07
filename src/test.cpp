@@ -1,32 +1,30 @@
 #include <gtest/gtest.h>
-#include "IHeap.hpp"
 #include "BinomialHeap.hpp"
 #include "StlHeap.hpp"
+#include "LeftHeap.hpp"
 namespace {
+	struct HeapLimits{
+		static int correct_test_max ;
+		static int test_max ;
+	};
 	class HeapTest : public ::testing::Test {
 		public:
 			CBinomialHeap BinHeap ;
 			CStlHeap StdHeap ;
+			CLeftHeap LHeap ;
 			HeapTest() {}
+			enum OpType {ADD, INSERT, GET, EXTRACT, MELD};
 			struct OperationData{
-				int type = 0;
-				int element = 0 ;
-				size_t index1 = 0 ;
-				size_t index2 = 0 ;
-				OperationData(int type, int element, size_t index1, size_t index2) :
+				int type ;
+				int element ;
+				size_t index1 ;
+				size_t index2 ;
+				OperationData(OpType type = ADD, int element = 0, size_t index1 = 0, size_t index2 = 0) :
 					type(type),
 					element(element),
 					index1(index1), 
 					index2(index2) {}
 			};
-			static const int ADD=0 ;
-			static const int INSERT=1 ;
-			static const int GET=2 ;
-			static const int EXTRACT=3 ;
-			static const int MELD=4 ;
-			static int correct_test_max ;
-			static int test_max_heap ;
-			static int test_max_operation ;
 			static void generate_test(size_t Size, std::vector<OperationData> &Vec_) {
 				size_t cur_size = 0 ;
 				for (size_t i=0;i<Size;++i) {
@@ -37,8 +35,7 @@ namespace {
 							++cur_size ;
 							break ;
 						case INSERT:
-							Vec_.push_back(OperationData(INSERT, std::rand(), std::rand()%cur_size, 0)) ;
-							break ;
+							Vec_.push_back(OperationData(INSERT, std::rand(), std::rand()%cur_size, 0)) ; break ;
 						case GET:
 							Vec_.push_back(OperationData(GET, 0, std::rand()%cur_size, 0)) ;
 							break ;
@@ -89,16 +86,19 @@ namespace {
 			}
 			void correct_test(IHeap &Heap, IHeap &Exam) {
 				std::vector<OperationData> Vec_ ;
-				generate_test(correct_test_max, Vec_) ;
+				generate_test(HeapLimits::correct_test_max, Vec_) ;
 				process_test(&Heap, &Exam, Vec_) ;
 				return ;
 			}
 	};
-	TEST_F(HeapTest, TEST_MAIN_FUNCTIONALITY) {
+	TEST_F(HeapTest, TEST_MAIN_FUNCTIONALITY_BIN_HEAP) {
 		correct_test(BinHeap, StdHeap) ;
 	}
+	TEST_F(HeapTest, TEST_MAIN_FUNCTIONALITY_LEFT_HEAP) {
+		correct_test(LHeap, StdHeap) ;
+	}
 }; //namespace
-int HeapTest::correct_test_max=10000 ;
+int HeapLimits::correct_test_max=10000 ;
 int main (int argc, char **argv) {
 	srand(time(NULL)) ;
 	::testing::InitGoogleTest(&argc, argv) ;

@@ -1,7 +1,4 @@
 #include "IHeap.hpp"
-#include <iostream>
-#define NDEBUG
-#include <cassert> 
 #include <list>
 #include <vector>
 #include <algorithm>
@@ -17,9 +14,7 @@ class CBinomialTree{
 			key(key),
 			child(child),
 			next(next),
-			degree(degree) {
-				assert(std::cout << "allocated " << this << std::endl) ;
-			}
+			degree(degree) {}
 		friend class CBinomialHeapNode ;
 		friend class CBinomialHeap ;
 		static _Self* merge(_Self *left, _Self *right) {
@@ -36,21 +31,10 @@ class CBinomialTree{
 			return res ;
 		}
 		~CBinomialTree() {
-			assert(std::cout << "freed " << this << std::endl) ;
 			if (child!=nullptr)
 				delete child ;
 			if (next!=nullptr)
 				delete next ;
-		}
-		void print() {
-			std::cout << "key: " << key << std::endl ;
-			std::cout << "child: \n" ;
-			if (child!=nullptr) 
-				child->print() ;
-			std::cout << "next: \n" ;
-			if (next!=nullptr) 
-				next->print() ;
-			return ;
 		}
 };
 class CBinomialHeapNode {
@@ -106,37 +90,6 @@ class CBinomialHeapNode {
 				}
 			}
 			root.splice(root.end(), newroot) ;
-			/*if (left==nullptr) 
-				res->root.insert(res->root.begin(), mright.root.begin(), mright.root.end()) ;
-				else if (right==nullptr) 
-				res->root.insert(res->root.begin(), mleft->root.begin(), mleft->root.end()) ;
-				else {
-				_List::iterator cur=res->root.begin(), pcur ;
-				while (left!=nullptr || right!=nullptr) {
-				if (right==nullptr || left->degree<right->degree) {
-				cur->next=left ;
-				left=left->next ;
-				}
-				else if (left==nullptr || right->degree<left->degree) {
-				cur->next=right ;
-				right=right->next ;
-				}
-				else { 
-				_Tree *nleft=left->next, *nright=right->next ;
-				cur->next=_Tree::merge(left, right) ;
-				left=nleft ;
-				right=nright ;
-				}
-				if (cur->degree == cur->next->degree) {
-				cur = _Tree::merge(cur, cur->next) ;
-				pcur->next=cur ;
-				}
-				else {
-				pcur=cur ;
-				cur=cur->next ;
-				}
-				}
-				}*/
 			return ;
 		}
 		CBinomialHeapNode(_Self &&that) {
@@ -180,12 +133,6 @@ class CBinomialHeapNode {
 			return res ; 
 		}
 		friend class CBinomialHeap ;
-		void print() {
-			for (auto it=root.begin();it!=root.end();++it) {
-				std::cout << "tree: \n" ;
-				(*it)->print() ;
-			}
-		}
 };
 class CBinomialHeap : public IHeap {
 	typedef CBinomialHeapNode Heap ;
@@ -219,12 +166,5 @@ class CBinomialHeap : public IHeap {
 			return ;
 		vec[index1].merge(vec[index2]) ;
 		vec.erase(vec.begin()+index2) ;
-	}
-	void print() {
-		std::cout << "heap:\n" << std::endl ;
-		for (auto it=vec.begin();it!=vec.end();++it) {
-			std::cout << "node: \n" ;
-			it->print() ;
-		}
 	}
 };
