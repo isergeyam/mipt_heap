@@ -59,26 +59,31 @@ namespace {
 					case ADD:
 						Heap_.AddHeap(Op_.element) ;
 						res = 0;
+						break ;
 					case INSERT:
 						Heap_.Insert(Op_.index1, Op_.element) ;
 						res = 0;
+						break ;
 					case GET:
 						res = Heap_.GetMin(Op_.index1) ;
+						break ;
 					case EXTRACT:
 						res = Heap_.ExtractMin(Op_.index1) ;
+						break ;
 					case MELD:
 						Heap_.Meld(Op_.index1, Op_.index2) ;
 						res = 0 ;
+						break ;
 				}
 				return res ;
 			}
 			void process_test(IHeap *Heap, IHeap *Exam, const vector<OperationData> &Vec_) {
 				for (auto it=Vec_.begin();it!=Vec_.end();++it) {
-					int res1 = process_operation(*it, *Heap), res2 ;
+					int res1 = process_operation(*it, *Exam), res2 ;
 					if (Heap == Exam) 
 						res2=res1 ;
 					else 
-						res2=process_operation(*it, *Exam) ;
+						res2=process_operation(*it, *Heap) ;
 					EXPECT_EQ(res1, res2) ;
 				}
 			}
@@ -93,8 +98,9 @@ namespace {
 		correct_test(BinHeap, StdHeap) ;
 	}
 }; //namespace
-int HeapTest::correct_test_max=100 ;
+int HeapTest::correct_test_max=10000 ;
 int main (int argc, char **argv) {
+	srand(time(NULL)) ;
 	::testing::InitGoogleTest(&argc, argv) ;
 	return RUN_ALL_TESTS() ;
 }
