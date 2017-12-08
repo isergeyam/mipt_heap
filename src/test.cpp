@@ -4,14 +4,19 @@
 #include "LeftHeap.hpp"
 namespace {
 	struct HeapLimits{
-		static int correct_test_max ;
-		static int test_max ;
+		static size_t correct_test_max ;
+		static size_t test_max ;
+		static size_t test_min ;
 	};
+	template<typename _CurHeap>
 	class HeapTest : public ::testing::Test {
-		public:
-			CBinomialHeap BinHeap ;
+		protected :
+			_CurHeap MyHeap ; 
 			CStlHeap StdHeap ;
-			CLeftHeap LHeap ;
+		public:
+			//CBinomialHeap BinHeap ;
+			//CLeftHeap<CLeftHeapNode> LHeap ;
+			//CLeftHeap<CSkewHeapNode> SHeap ;
 			HeapTest() {}
 			enum OpType {ADD, INSERT, GET, EXTRACT, MELD};
 			struct OperationData{
@@ -25,6 +30,17 @@ namespace {
 					index1(index1), 
 					index2(index2) {}
 			};
+			static std::vector<OperationData> ExamVec ;
+			static std::vector<std::vector<OperationData > > TestVec ;
+			static void SetUpTestCase() {
+				generate_test(HeapLimits::correct_test_max, ExamVec) ;
+				for (size_t i=HeapLimits::test_min;i<=HeapLimits::test_max;i*=10) { 
+					std::vector<OperationData> CurVector ;
+					generate_test(i, CurVector) ;
+					TestVec.push_back(std::move(CurVector)) ;
+				}
+				return ;
+			}
 			static void generate_test(size_t Size, std::vector<OperationData> &Vec_) {
 				size_t cur_size = 0 ;
 				for (size_t i=0;i<Size;++i) {
@@ -85,20 +101,28 @@ namespace {
 				}
 			}
 			void correct_test(IHeap &Heap, IHeap &Exam) {
-				std::vector<OperationData> Vec_ ;
-				generate_test(HeapLimits::correct_test_max, Vec_) ;
-				process_test(&Heap, &Exam, Vec_) ;
+				process_test(&Heap, &Exam, ExamVec) ;
 				return ;
 			}
 	};
-	TEST_F(HeapTest, TEST_MAIN_FUNCTIONALITY_BIN_HEAP) {
-		correct_test(BinHeap, StdHeap) ;
+	typedef ::testing::Types<CBinomialHeap, CLeftHeap<CLeftHeapNode>, CLeftHeap<CSkewHeapNode> > MyTypes ;
+	TYPED_TEST_CASE(HeapTest, MyTypes) ;
+	TYPED_TEST(HeapTest, TEST_MAIN_FUNCTIONALITY) {
+		TestFixture::correct_test(this->MyHeap, this->StdHeap) ;
 	}
-	TEST_F(HeapTest, TEST_MAIN_FUNCTIONALITY_LEFT_HEAP) {
-		correct_test(LHeap, StdHeap) ;
+	TYPED_TEST(HeapTest, TEST_TIME) {
+		for (size_t i=HeapLimits::test_min;i<=HeapLimits::test_max;i*=10) { 
+			std::vector<typename TestFixture::OperationData> &CurVec=TestFixture::TestVec[i/HeapLimits::correct_test_max] ;
+			TestFixture::generate_test(i, CurVec) ;
+			clock_t  time_dump = clock() ;
+			TestFixture::process_test(&this->MyHeap, &this->MyHeap, CurVec) ;
+			std::cout << "Time for " << i << ": " << static_cast<double>(clock()-time_dump)/CLOCKS_PER_SEC << std::endl ;
+		}
 	}
 }; //namespace
-int HeapLimits::correct_test_max=10000 ;
+size_t HeapLimits::correct_test_max=10000 ;
+size_t HeapLimits::test_max=static_cast<size_t>(10e5) ;
+size_t HeapLimits::test_min=static_cast<size_t>(10e2) ;
 int main (int argc, char **argv) {
 	srand(time(NULL)) ;
 	::testing::InitGoogleTest(&argc, argv) ;

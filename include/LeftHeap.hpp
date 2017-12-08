@@ -1,53 +1,76 @@
 #include "IHeap.hpp"
 #include <vector>
 #include <algorithm>
-class CLeftHeapNode{
-	typedef CLeftHeapNode _Self ;
-	private:
-		int key_ ;
-		size_t distance_ ;
-		_Self *left_ ;
-		_Self *right_ ;
-	public:
-		static size_t dist_(_Self *a) {
-			return (a==nullptr) ? 0 : a->distance_ ;
-		}
-		static void recalc_(_Self *a) {
-			if (a==nullptr)
-				return ;
-			a->distance_=std::max(dist_(a->left_), dist_(a->right_))+1 ;
-		}
-		CLeftHeapNode(int key_ = 0, int distance_ = 0, _Self *left_=nullptr, _Self *right_=nullptr) :
-			key_(key_),
-			distance_(distance_),
-			left_(left_),
-			right_(right_) 
-	{
-		recalc_(this) ;
+template<class HeapNode>
+struct ILeftHeapNode{
+	int key_ ;
+	HeapNode *left_ ;
+	HeapNode *right_ ;
+	~ILeftHeapNode() {
+		if (left_!=nullptr)
+			delete left_ ;
+		if (right_!=nullptr)
+			delete right_ ;
 	}
-		~CLeftHeapNode() {
-			if (left_!=nullptr)
-				delete left_ ;
-			if (right_!=nullptr)
-				delete right_ ;
-		}
-		static _Self* merge_(_Self *one_, _Self *second_) {
-			if (one_==nullptr)
-				return second_ ;
-			if (second_==nullptr) 
-				return one_ ;
-			if (second_->key_<one_->key_)
-				std::swap(one_, second_) ;
-			one_->right_=merge_(one_->right_, second_) ;
-			if(dist_(one_->right_)>dist_(one_->left_))
-				std::swap(one_->right_, one_->left_) ;
-			recalc_(one_) ;
-			return one_ ;
-		}
+	template<typename _Heap>
 		friend class CLeftHeap ;
 };
+struct CLeftHeapNode : public ILeftHeapNode<CLeftHeapNode> {
+	size_t distance_ ;
+	CLeftHeapNode(int key_ = 0, int distance_ = 0, CLeftHeapNode *left_=nullptr, CLeftHeapNode *right_=nullptr) :
+		distance_(distance_) 
+	{
+		this->key_=key_ ;
+		this->left_=left_ ;
+		this->right_=right_ ;
+		recalc_(this) ;
+	}
+	static size_t dist_(CLeftHeapNode *a) {
+		return (a==nullptr) ? 0 : a->distance_ ;
+	}
+	static void recalc_(CLeftHeapNode *a) {
+		if (a==nullptr)
+			return ;
+		a->distance_=std::max(dist_(a->left_), dist_(a->right_))+1 ;
+	}
+};
+struct CSkewHeapNode : public ILeftHeapNode<CSkewHeapNode> {
+	CSkewHeapNode(int key_ = 0,  CSkewHeapNode *left_=nullptr, CSkewHeapNode *right_=nullptr)
+	{
+		this->key_=key_ ;
+		this->left_=left_ ;
+		this->right_=right_ ;
+	}
+};
+template<class HeapNode> 
+HeapNode* _base_merge_(HeapNode *one_, HeapNode *second_) {
+	if (one_==nullptr)
+		return second_ ;
+	if (second_==nullptr) 
+		return one_ ;
+	if (second_->key_<one_->key_)
+		std::swap(one_, second_) ;
+	one_->right_=merge_(one_->right_, second_) ;
+	return one_ ;
+}
+CLeftHeapNode* merge_(CLeftHeapNode *one_, CLeftHeapNode *second_) {
+	CLeftHeapNode *res=_base_merge_(one_, second_) ;
+	if(res==nullptr)
+		return res ;
+	if(CLeftHeapNode::dist_(res->left_)>CLeftHeapNode::dist_(res->right_))
+		std::swap(res->left_, res->right_) ;
+	CLeftHeapNode::recalc_(res) ;
+	return res ;
+}
+CSkewHeapNode* merge_(CSkewHeapNode *one_, CSkewHeapNode *second_) {
+	CSkewHeapNode *res=_base_merge_(one_, second_) ;
+	if(res==nullptr)
+		return res ;
+	std::swap(res->left_ , res->right_) ;
+	return res ;
+}
+template<typename _Heap>
 class CLeftHeap : public IHeap {
-	typedef CLeftHeapNode _Heap ;
 	private:
 		std::vector<_Heap*> Vec_ ;
 	public:
@@ -62,7 +85,7 @@ class CLeftHeap : public IHeap {
 			return ;
 		}
 		virtual void Insert(size_t index, int key) {
-			Vec_[index]=_Heap::merge_(Vec_[index], new _Heap(key)) ;
+			Vec_[index]=merge_(Vec_[index], new _Heap(key)) ;
 		}
 		virtual int GetMin(size_t index) const {
 			if (Vec_[index]==nullptr)
@@ -73,7 +96,7 @@ class CLeftHeap : public IHeap {
 			if (Vec_[index]==nullptr)
 				return 0 ;
 			_Heap *cur=Vec_[index] ;
-			_Heap *newcur = _Heap::merge_(cur->left_, cur->right_) ;
+			_Heap *newcur = merge_(cur->left_, cur->right_) ;
 			cur->left_=cur->right_=nullptr ;
 			int res = cur->key_ ;
 			delete cur ;
@@ -83,7 +106,7 @@ class CLeftHeap : public IHeap {
 		virtual void Meld(size_t index1, size_t index2) {
 			if (index1==index2)
 				return ;
-			Vec_[index1]=_Heap::merge_(Vec_[index1], Vec_[index2]) ;
+			Vec_[index1]=merge_(Vec_[index1], Vec_[index2]) ;
 			Vec_.erase(Vec_.begin()+index2) ;
 		}
 };
