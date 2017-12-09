@@ -42,8 +42,18 @@ struct CSkewHeapNode : public ILeftHeapNode<CSkewHeapNode> {
 		this->right_=right_ ;
 	}
 };
+CLeftHeapNode* _correct_merge_(CLeftHeapNode *res) {
+	if(CLeftHeapNode::dist_(res->left_)>CLeftHeapNode::dist_(res->right_))
+		std::swap(res->left_, res->right_) ;
+	CLeftHeapNode::recalc_(res) ;
+	return res ;
+}
+CSkewHeapNode* _correct_merge_(CSkewHeapNode *res) {
+	std::swap(res->left_ , res->right_) ;
+	return res ;
+}
 template<class HeapNode> 
-HeapNode* _base_merge_(HeapNode *one_, HeapNode *second_) {
+HeapNode* merge_(HeapNode *one_, HeapNode *second_) {
 	if (one_==nullptr)
 		return second_ ;
 	if (second_==nullptr) 
@@ -51,23 +61,8 @@ HeapNode* _base_merge_(HeapNode *one_, HeapNode *second_) {
 	if (second_->key_<one_->key_)
 		std::swap(one_, second_) ;
 	one_->right_=merge_(one_->right_, second_) ;
+	_correct_merge_(one_) ;
 	return one_ ;
-}
-CLeftHeapNode* merge_(CLeftHeapNode *one_, CLeftHeapNode *second_) {
-	CLeftHeapNode *res=_base_merge_(one_, second_) ;
-	if(res==nullptr)
-		return res ;
-	if(CLeftHeapNode::dist_(res->left_)>CLeftHeapNode::dist_(res->right_))
-		std::swap(res->left_, res->right_) ;
-	CLeftHeapNode::recalc_(res) ;
-	return res ;
-}
-CSkewHeapNode* merge_(CSkewHeapNode *one_, CSkewHeapNode *second_) {
-	CSkewHeapNode *res=_base_merge_(one_, second_) ;
-	if(res==nullptr)
-		return res ;
-	std::swap(res->left_ , res->right_) ;
-	return res ;
 }
 template<typename _Heap>
 class CLeftHeap : public IHeap {
