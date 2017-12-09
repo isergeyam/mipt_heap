@@ -43,7 +43,7 @@ struct CSkewHeapNode : public ILeftHeapNode<CSkewHeapNode> {
 	}
 };
 CLeftHeapNode* _correct_merge_(CLeftHeapNode *res) {
-	if(CLeftHeapNode::dist_(res->left_)>CLeftHeapNode::dist_(res->right_))
+	if(CLeftHeapNode::dist_(res->left_)<CLeftHeapNode::dist_(res->right_))
 		std::swap(res->left_, res->right_) ;
 	CLeftHeapNode::recalc_(res) ;
 	return res ;
