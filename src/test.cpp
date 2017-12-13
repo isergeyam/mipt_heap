@@ -54,9 +54,6 @@ protected:
   HeapList<CStlHeap> StdHeap;
 
 public:
-  // CBinomialHeap BinHeap ;
-  // CLeftHeap<CLeftHeapNode> LHeap ;
-  // CLeftHeap<CSkewHeapNode> SHeap ;
   HeapTest() {}
   template <typename PrHeap>
   int process_operation(OperationData Op_, HeapList<PrHeap> &Heap_) {

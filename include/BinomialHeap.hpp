@@ -129,39 +129,4 @@ public:
       return 0;
     return (*minimum())->key;
   }
-  //	friend class CBinomialHeap ;
 };
-/*class CBinomialHeap : public IHeap {
-        typedef CBinomialHeap Heap ;
-        private:
-        std::vector<Heap> vec ;
-        public:
-        CBinomialHeap() {}
-        ~CBinomialHeap() {
-        for (auto it=vec.begin();it!=vec.end();++it) {
-        it->clear() ;
-        }
-        }
-        virtual void AddHeap( int x) {
-        vec.push_back(Heap(x)) ;
-        }
-        virtual void Insert( size_t index, int x) {
-        vec[index].insert(x) ;
-        }
-        virtual int GetMin(size_t index) const {
-        if (vec[index].size()==0)
-        return 0 ;
-        return (*vec[index].minimum())->key ;
-        }
-        virtual int ExtractMin(size_t index)  {
-        if (vec[index].size()==0)
-        return 0 ;
-        return vec[index].ExtractMin() ;
-        }
-        virtual void Meld(size_t index1, size_t index2) {
-        if (vec.size()<2 || index1==index2)
-        return ;
-        vec[index1].merge(vec[index2]) ;
-        vec.erase(vec.begin()+index2) ;
-        }
-        };*/

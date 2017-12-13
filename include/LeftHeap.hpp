@@ -95,13 +95,6 @@ public:
     int res = root->key_;
     HeapNode *newroot = dynamic_cast<HeapNode *>(
         ILeftHeapNode::merge_(root->left_, root->right_));
-    /*if (root->left_ == nullptr)
-      newroot = dynamic_cast<HeapNode *>(root->right_);
-    else if (root->right_ == nullptr)
-      newroot = dynamic_cast<HeapNode *>(root->left_);
-    else
-      newroot =
-          dynamic_cast<HeapNode *>(root->merge_(root->left_, root->right_));*/
     root->left_ = root->right_ = nullptr;
     delete root;
     root = newroot;
@@ -113,45 +106,3 @@ public:
   }
   virtual ~LeftHeap() { delete root; }
 };
-/*template<class HeapNode>
-template<typename _Heap>
-class CLeftHeap : public IHeap {
-        private:
-                std::vector<_Heap*> Vec_ ;
-        public:
-                ~CLeftHeap() {
-                        for (auto it=Vec_.begin();it!=Vec_.end();++it) {
-                                if (*it!=nullptr)
-                                        delete *it ;
-                        }
-                }
-                virtual void AddHeap(int key ) {
-                        Vec_.push_back(new _Heap(key)) ;
-                        return ;
-                }
-                virtual void Insert(size_t index, int key) {
-                        Vec_[index]=merge_(Vec_[index], new _Heap(key)) ;
-                }
-                virtual int GetMin(size_t index) const {
-                        if (Vec_[index]==nullptr)
-                                return 0 ;
-                        return Vec_[index]->key_ ;
-                }
-                virtual int ExtractMin(size_t index) {
-                        if (Vec_[index]==nullptr)
-                                return 0 ;
-                        _Heap *cur=Vec_[index] ;
-                        _Heap *newcur = merge_(cur->left_, cur->right_) ;
-                        cur->left_=cur->right_=nullptr ;
-                        int res = cur->key_ ;
-                        delete cur ;
-                        Vec_[index]=newcur ;
-                        return res ;
-                }
-                virtual void Meld(size_t index1, size_t index2) {
-                        if (index1==index2)
-                                return ;
-                        Vec_[index1]=merge_(Vec_[index1], Vec_[index2]) ;
-                        Vec_.erase(Vec_.begin()+index2) ;
-                }
-};*/
