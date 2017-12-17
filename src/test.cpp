@@ -47,20 +47,29 @@ struct HeapLimits {
   static size_t test_max;
   static size_t test_min;
   static size_t test_walk;
+  static void init(int argc, char **argv) {
+    if (argc < 5)
+      return;
+    correct_test_max = atoi(argv[1]);
+    test_min = atoi(argv[2]);
+    test_max = atoi(argv[3]);
+    test_walk = atoi(argv[4]);
+    return;
+  }
 };
 template <typename _CurHeap> class HeapTest : public ::testing::Test {
 protected:
-  HeapList<_CurHeap> MyHeap;
-  HeapList<CStlHeap> StdHeap;
+  HeapList MyHeap;
+  HeapList StdHeap;
 
 public:
   HeapTest() {}
   template <typename PrHeap>
-  int process_operation(OperationData Op_, HeapList<PrHeap> &Heap_) {
+  int process_operation(OperationData Op_, HeapList &Heap_) {
     int res;
     switch (Op_.type) {
     case ADD:
-      Heap_.AddHeap(Op_.element);
+      Heap_.AddHeap(new PrHeap(Op_.element));
       res = 0;
       break;
     case INSERT:
@@ -81,21 +90,16 @@ public:
     return res;
   }
   template <typename PrHeap, typename PrEHeap>
-  void process_test(HeapList<PrHeap> *Heap, HeapList<PrEHeap> *Exam,
+  void process_test(HeapList *Heap, HeapList *Exam,
                     const vector<OperationData> &Vec_) {
     for (auto it = Vec_.begin(); it != Vec_.end(); ++it) {
-      int res1 = process_operation(*it, *Exam), res2;
-      if (typeid(PrHeap).hash_code() == typeid(PrEHeap).hash_code())
+      int res1 = process_operation<PrHeap>(*it, *Heap), res2;
+      if (Heap == Exam)
         res2 = res1;
       else
-        res2 = process_operation(*it, *Heap);
+        res2 = process_operation<PrEHeap>(*it, *Exam);
       EXPECT_EQ(res1, res2);
     }
-  }
-  template <typename PrHeap, typename PrEHeap>
-  void correct_test(HeapList<PrHeap> &Heap, HeapList<PrEHeap> &Exam) {
-    process_test(&Heap, &Exam, ExamVec);
-    return;
   }
 };
 typedef ::testing::Types<CBinomialHeap, LeftHeap<CLeftHeapNode>,
@@ -103,14 +107,16 @@ typedef ::testing::Types<CBinomialHeap, LeftHeap<CLeftHeapNode>,
     MyTypes;
 TYPED_TEST_CASE(HeapTest, MyTypes);
 TYPED_TEST(HeapTest, TEST_MAIN_FUNCTIONALITY) {
-  TestFixture::correct_test(this->MyHeap, this->StdHeap);
+  TestFixture::template process_test<TypeParam, CStlHeap>(
+      &this->MyHeap, &this->StdHeap, ExamVec);
 }
 TYPED_TEST(HeapTest, TEST_TIME) {
   for (size_t i = HeapLimits::test_min, j = 0; i <= HeapLimits::test_max;
        i *= HeapLimits::test_walk) {
     std::vector<OperationData> &CurVec = TestVec[j];
     clock_t time_dump = clock();
-    TestFixture::process_test(&this->MyHeap, &this->MyHeap, CurVec);
+    TestFixture::template process_test<TypeParam, TypeParam>(
+        &this->MyHeap, &this->MyHeap, CurVec);
     std::cout << "" << i << " "
               << static_cast<double>(clock() - time_dump) / CLOCKS_PER_SEC
               << std::endl;
@@ -118,7 +124,7 @@ TYPED_TEST(HeapTest, TEST_TIME) {
   }
 }
 size_t HeapLimits::correct_test_max = 10000;
-size_t HeapLimits::test_max = static_cast<size_t>(10e5);
+size_t HeapLimits::test_max = static_cast<size_t>(5 * 10e4);
 size_t HeapLimits::test_min = static_cast<size_t>(10e2);
 size_t HeapLimits::test_walk = 2;
 int main(int argc, char **argv) {
@@ -131,6 +137,7 @@ int main(int argc, char **argv) {
     TestVec.push_back(std::move(curvec));
     ++j;
   }
+  HeapLimits::init(argc, argv);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
