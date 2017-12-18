@@ -2,12 +2,10 @@
 #include <algorithm>
 #include <vector>
 class ILeftHeapNode {
-protected:
+public:
   int key_;
   ILeftHeapNode *left_;
   ILeftHeapNode *right_;
-  friend class CLeftHeapNode;
-  friend class CSkewHeapNode;
 
 public:
   virtual ~ILeftHeapNode() {
@@ -30,7 +28,7 @@ public:
     return one_;
   }
 };
-class CLeftHeapNode : protected ILeftHeapNode {
+class CLeftHeapNode : public ILeftHeapNode {
 private:
   size_t distance_;
   static size_t dist_(CLeftHeapNode *a) {

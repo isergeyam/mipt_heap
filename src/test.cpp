@@ -12,7 +12,7 @@ struct OperationData {
                 size_t index2 = 0)
       : type(type), element(element), index1(index1), index2(index2) {}
 };
-void generate_test(size_t Size, std::vector<OperationData> &Vec_) {
+size_t generate_test(size_t Size, std::vector<OperationData> &Vec_) {
   size_t cur_size = 0;
   for (size_t i = 0; i < Size; ++i) {
     int x = (cur_size == 0) ? 0 : rand() % 5;
@@ -38,10 +38,11 @@ void generate_test(size_t Size, std::vector<OperationData> &Vec_) {
       break;
     }
   }
-  return;
+  return cur_size;
 }
 static std::vector<OperationData> ExamVec;
 static std::vector<std::vector<OperationData>> TestVec;
+static std::vector<std::vector<OperationData>> MergeVec;
 struct HeapLimits {
   static size_t correct_test_max;
   static size_t test_max;
@@ -101,6 +102,12 @@ public:
       EXPECT_EQ(res1, res2);
     }
   }
+  template <typename PrHeap> void merge_all(HeapList &Heap) {
+    while (Heap.size() >= 1) {
+      Heap.Meld(0, 1);
+    }
+    return;
+  }
 };
 typedef ::testing::Types<CBinomialHeap, LeftHeap<CLeftHeapNode>,
                          LeftHeap<CSkewHeapNode>>
@@ -117,6 +124,8 @@ TYPED_TEST(HeapTest, TEST_TIME) {
     clock_t time_dump = clock();
     TestFixture::template process_test<TypeParam, TypeParam>(
         &this->MyHeap, &this->MyHeap, CurVec);
+    TestFixture::template process_test<TypeParam, TypeParam>(
+        &this->MyHeap, &this->MyHeap, MergeVec[j]);
     std::cout << "" << i << " "
               << static_cast<double>(clock() - time_dump) / CLOCKS_PER_SEC
               << std::endl;
@@ -132,9 +141,11 @@ int main(int argc, char **argv) {
   generate_test(HeapLimits::correct_test_max, ExamVec);
   for (size_t i = HeapLimits::test_min, j = 0; i <= HeapLimits::test_max;
        i *= HeapLimits::test_walk) {
-    vector<OperationData> curvec;
-    generate_test(i, curvec);
+    vector<OperationData> curvec, mvec;
+    size_t cur_size = generate_test(i, curvec);
     TestVec.push_back(std::move(curvec));
+    mvec.insert(mvec.end(), cur_size - 1, OperationData(MELD, 0, 0, 1));
+    MergeVec.push_back(std::move(mvec));
     ++j;
   }
   HeapLimits::init(argc, argv);

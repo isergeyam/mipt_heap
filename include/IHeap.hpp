@@ -37,4 +37,6 @@ public:
       delete *it;
     }
   }
+  size_t size() { return Vec_.size(); }
+  bool empty() { return Vec_.empty(); }
 };
