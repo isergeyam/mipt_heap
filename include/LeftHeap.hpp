@@ -2,10 +2,12 @@
 #include <algorithm>
 #include <vector>
 class ILeftHeapNode {
-public:
+protected:
   int key_;
   ILeftHeapNode *left_;
   ILeftHeapNode *right_;
+  friend class CLeftHeapNode;
+  friend class CSkewHeapNode;
 
 public:
   virtual ~ILeftHeapNode() {
@@ -14,6 +16,7 @@ public:
     if (right_ != nullptr)
       delete right_;
   }
+
   virtual ILeftHeapNode *_correct_merge_(ILeftHeapNode *) = 0;
   static ILeftHeapNode *merge_(ILeftHeapNode *one_, ILeftHeapNode *second_) {
     if (one_ == nullptr)
@@ -27,8 +30,20 @@ public:
     return one_;
   }
 };
-class CLeftHeapNode : public ILeftHeapNode {
+class CLeftHeapNode : protected ILeftHeapNode {
+private:
   size_t distance_;
+  static size_t dist_(CLeftHeapNode *a) {
+    return (a == nullptr) ? 0 : a->distance_;
+  }
+
+  static void recalc_(CLeftHeapNode *a) {
+    if (a == nullptr)
+      return;
+    a->distance_ = std::max(dist_(dynamic_cast<CLeftHeapNode *>(a->left_)),
+                            dist_(dynamic_cast<CLeftHeapNode *>(a->right_))) +
+                   1;
+  }
 
 public:
   explicit CLeftHeapNode(int key_ = 0, int distance_ = 0,
@@ -40,16 +55,7 @@ public:
     this->right_ = right_;
     recalc_(this);
   }
-  static size_t dist_(CLeftHeapNode *a) {
-    return (a == nullptr) ? 0 : a->distance_;
-  }
-  static void recalc_(CLeftHeapNode *a) {
-    if (a == nullptr)
-      return;
-    a->distance_ = std::max(dist_(dynamic_cast<CLeftHeapNode *>(a->left_)),
-                            dist_(dynamic_cast<CLeftHeapNode *>(a->right_))) +
-                   1;
-  }
+
   virtual ILeftHeapNode *_correct_merge_(ILeftHeapNode *res) {
     if (dist_(dynamic_cast<CLeftHeapNode *>(res->left_)) <
         dist_(dynamic_cast<CLeftHeapNode *>(res->right_)))
