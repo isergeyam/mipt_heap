@@ -31,8 +31,9 @@ class CLeftHeapNode : public ILeftHeapNode {
   size_t distance_;
 
 public:
-  CLeftHeapNode(int key_ = 0, int distance_ = 0, CLeftHeapNode *left_ = nullptr,
-                CLeftHeapNode *right_ = nullptr)
+  explicit CLeftHeapNode(int key_ = 0, int distance_ = 0,
+                         CLeftHeapNode *left_ = nullptr,
+                         CLeftHeapNode *right_ = nullptr)
       : distance_(distance_) {
     this->key_ = key_;
     this->left_ = left_;
@@ -59,8 +60,8 @@ public:
 };
 class CSkewHeapNode : public ILeftHeapNode {
 public:
-  CSkewHeapNode(int key_ = 0, CSkewHeapNode *left_ = nullptr,
-                CSkewHeapNode *right_ = nullptr) {
+  explicit CSkewHeapNode(int key_ = 0, CSkewHeapNode *left_ = nullptr,
+                         CSkewHeapNode *right_ = nullptr) {
     this->key_ = key_;
     this->left_ = left_;
     this->right_ = right_;
@@ -73,36 +74,37 @@ public:
 template <typename HeapNode> class LeftHeap : public IHeap {
 private:
   typedef LeftHeap<HeapNode> _Self;
-  HeapNode *root;
+  HeapNode *root_;
 
 public:
   void Insert(int key) {
     HeapNode *newnode = new HeapNode(key);
-    root = dynamic_cast<HeapNode *>(ILeftHeapNode::merge_(newnode, root));
+    root_ = dynamic_cast<HeapNode *>(ILeftHeapNode::merge_(newnode, root_));
   }
-  LeftHeap(int key) {
-    root = nullptr;
+  explicit LeftHeap(int key) {
+    root_ = nullptr;
     Insert(key);
   }
   int GetMin() const {
-    if (root == nullptr)
+    if (root_ == nullptr)
       return 0;
-    return root->key_;
+    return root_->key_;
   }
   int ExtractMin() {
-    if (root == nullptr)
+    if (root_ == nullptr)
       return 0;
-    int res = root->key_;
-    HeapNode *newroot = dynamic_cast<HeapNode *>(
-        ILeftHeapNode::merge_(root->left_, root->right_));
-    root->left_ = root->right_ = nullptr;
-    delete root;
-    root = newroot;
+    int res = root_->key_;
+    HeapNode *newroot_ = dynamic_cast<HeapNode *>(
+        ILeftHeapNode::merge_(root_->left_, root_->right_));
+    root_->left_ = root_->right_ = nullptr;
+    delete root_;
+    root_ = newroot_;
     return res;
   }
   void Meld(IHeap &mmheap_) {
     _Self &mheap_ = dynamic_cast<_Self &>(mmheap_);
-    root = dynamic_cast<HeapNode *>(ILeftHeapNode::merge_(root, mheap_.root));
+    root_ =
+        dynamic_cast<HeapNode *>(ILeftHeapNode::merge_(root_, mheap_.root_));
   }
-  virtual ~LeftHeap() { delete root; }
+  virtual ~LeftHeap() { delete root_; }
 };
